@@ -38,3 +38,4 @@ Deadline: Nov 12 2026 12:00 PM PST = 1:00 PM MST (Denver). Judging Dec 1–15, w
 - demo/edit.py (run with /workspace/bounty/tools/sdenv/bin/python) cuts frames+timeline → demo/wasl_demo.mp4.
 - Grounding now fixes the deadline year (model said 2023). Take 1 recording uses the old code → shows 2023-10-30 in the grid.
 - 23:45 take 2 recording started (judge guardrail + deadline fix + ask fix)
+- 00:05 take 3 started: deliverable grounding (duration/window/code/subtitles/show-clearly), temperature 0 + seed 7. take 2 failed: model said 60–90s.

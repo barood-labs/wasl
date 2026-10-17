@@ -4,7 +4,7 @@
 import { z } from 'zod';
 import { config } from './config.js';
 
-export async function chatJSON({ system, user, schema, temperature = 0.1, maxTokens = 1800 }) {
+export async function chatJSON({ system, user, schema, temperature = 0, maxTokens = 1800 }) {
   let lastErr;
   for (let attempt = 0; attempt < 2; attempt++) {
     const ctrl = new AbortController();
@@ -14,7 +14,7 @@ export async function chatJSON({ system, user, schema, temperature = 0.1, maxTok
         method: 'POST', signal: ctrl.signal,
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.ai.apiKey}` },
         body: JSON.stringify({
-          model: config.ai.model, temperature, max_tokens: maxTokens,
+          model: config.ai.model, temperature, max_tokens: maxTokens, seed: 7,
           response_format: { type: 'json_object' },
           messages: [
             { role: 'system', content: system },

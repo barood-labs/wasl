@@ -111,6 +111,36 @@ export function groundDeal(deal, chat) {
     }
     if (d.kind === 'language' && !d.languages?.length) d.languages = ['ar', 'en'];
   }
+  // Deliverable facts the chat states explicitly (durations, time windows, codes, subtitles) override the model.
+  const D = (deal.deliverables ||= []);
+  const blank = { phrase: '', aliases: [], within_first_seconds: null, min_seconds: null, max_seconds: null, languages: [] };
+  const dur = chat.match(/(?:بين|between|from)\s*(\d{1,3})\s*(?:و|and|-|–|to)\s*(\d{1,3})\s*(?:ثانية|ثواني|seconds|secs?|s\b)/i);
+  if (dur) {
+    const [mn, mx] = [Number(dur[1]), Number(dur[2])];
+    let d = D.find((x) => x.kind === 'duration');
+    if (!d) { D.push(d = { ...blank, kind: 'duration', description_en: `Video length ${mn}–${mx} seconds`, description_ar: `مدة الفيديو بين ${mn} و${mx} ثانية` }); notes.push(`Added duration ${mn}–${mx}s from the chat`); }
+    if (d.min_seconds !== mn || d.max_seconds !== mx) { if (d.min_seconds != null) notes.push(`Duration corrected to ${mn}–${mx}s`); d.min_seconds = mn; d.max_seconds = mx; d.description_en = `Video length ${mn}–${mx} seconds`; d.description_ar = `مدة الفيديو بين ${mn} و${mx} ثانية`; }
+  }
+  const quoted = chat.match(/(?:تقول[يو]?|يقول|say|mention)[^"“«\n]{0,25}["“«]([^"”»\n]{2,40})["”»]/i)?.[1];
+  const within = chat.match(/(?:أول|first)\s*(\d{1,3})\s*(?:ثانية|ثواني|seconds|secs?)/i);
+  if (quoted) {
+    let d = D.find((x) => x.kind === 'spoken_mention');
+    if (!d) { D.unshift(d = { ...blank, kind: 'spoken_mention', phrase: quoted, description_en: `Say “${quoted}”`, description_ar: `ذكر «${quoted}»` }); notes.push(`Added spoken mention “${quoted}” from the chat`); }
+    if (within && d.within_first_seconds !== Number(within[1])) { d.within_first_seconds = Number(within[1]); notes.push(`Mention window set to first ${within[1]}s`); }
+    if (within) { d.description_en = `Say “${d.phrase}” within the first ${within[1]} seconds`; d.description_ar = `ذكر «${d.phrase}» خلال أول ${within[1]} ثانية`; }
+  }
+  const code = chat.match(/(?:code|كود)\s*["“«]?([A-Z][A-Z0-9]{2,15}\d)/)?.[1];
+  if (code && /screen|شاشة|visible|يظهر/i.test(chat) && !D.some((x) => x.kind === 'on_screen_text')) {
+    D.push({ ...blank, kind: 'on_screen_text', phrase: code, description_en: `Promo code ${code} visible on screen`, description_ar: `إظهار كود الخصم ${code} على الشاشة` }); notes.push(`Added on-screen code ${code} from the chat`);
+  }
+  if (/subtitle|ترجمة|مترجم/i.test(chat) && !D.some((x) => x.kind === 'language')) {
+    D.push({ ...blank, kind: 'language', languages: ['ar', 'en'], description_en: 'Arabic voice with English subtitles', description_ar: 'صوت عربي مع ترجمة إنجليزية' }); notes.push('Added language requirement (Arabic + English subtitles)');
+  }
+  const show = chat.match(/show (?:the |our )?([a-z]+(?: [a-z]+)?) clearly(?: and say (?:it has )?([^—\-.,\n]+))?/i);
+  if (show && !D.some((x) => x.kind === 'custom' && new RegExp(show[1].split(' ').pop(), 'i').test(x.description_en))) {
+    const en = `Show the ${show[1]} clearly${show[2] ? ` and say it has ${show[2].trim()}` : ''}`;
+    D.push({ ...blank, kind: 'custom', description_en: en, description_ar: show[2] ? 'إظهار المنتج بوضوح وذكر الميزة المطلوبة' : 'إظهار المنتج بوضوح' }); notes.push(`Added “${en}” from the chat`);
+  }
   // A “no exaggerated health claims” style instruction is a brand-safety custom check
   if (/ادعاء|health claim|claims/i.test(chat) && !(deal.deliverables || []).some((d) => /claim|ادعاء/i.test(d.description_en + d.description_ar))) {
     deal.deliverables.push({ kind: 'custom', description_en: 'No exaggerated health claims', description_ar: 'بدون ادعاءات صحية مبالغ فيها', phrase: '', aliases: [], within_first_seconds: null, min_seconds: null, max_seconds: null, languages: [] });

@@ -33,7 +33,9 @@ test('grounding corrects a model that mixed up brand and creator', () => {
   assert.equal(d.amount, 1200);
   assert.deepEqual(d.splits.map((s) => [s.role, s.percent, s.email]), [
     ['creator', 75, 'layla.creates@example.com'], ['editor', 15, 'karim.edits@example.com'], ['translator', 10, 'rana.subs@example.com']]);
-  assert.equal(d.deliverables[0].kind, 'custom');
+  assert.equal(d.deliverables.find((x) => x.phrase === 'No added sugar').kind, 'custom');
+  assert.equal(d.deliverables.find((x) => x.kind === 'spoken_mention').within_first_seconds, 15);
+  assert.deepEqual(['min_seconds', 'max_seconds'].map((k) => d.deliverables.find((x) => x.kind === 'duration')[k]), [30, 90]);
 });
 
 test('deterministic checks catch a late brand mention and a missing code', () => {
