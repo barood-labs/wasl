@@ -87,5 +87,5 @@ Authorize-then-capture is a natural fit for "pay on verified delivery". AI is mo
 ## "Was this built during the hackathon?"
 Yes. Everything in the repository was created during the submission period (Oct 2026).
 
-## Video script (≈2:20, synthetic narration)
+## Video script (1:58, synthetic narration)
 See `demo/narration.json`. Scenes: problem → chat-to-contract with grounding → Fund with PayPal (authorization hold) → v1 fails with timestamped evidence and bilingual fix list → v2 passes → capture + Payouts split → AG Grid dashboards with AI questions → Arabic RTL + MCP → close.

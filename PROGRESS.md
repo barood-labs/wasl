@@ -46,3 +46,18 @@ Deadline: Nov 12 2026 12:00 PM PST = 1:00 PM MST (Denver). Judging Dec 1–15, w
 - 00:31 dashboard part recorded OK (timeline_framesB.json). Next: edit.
 - 00:35 demo/wasl_demo.mp4 built (1:58)
 - 00:42 final demo rebuilt (title Arabic fix, sped-up label). Video kept out of git (upload to YouTube).
+
+## STATUS 00:45 MDT Oct 17 — build complete, NOT published/submitted
+Deliverables:
+- Repo: /workspace/bounty/paypal (git, 5+ commits, MIT LICENSE, README, Dockerfile, render.yaml, tests 5/5)
+- Demo video (provisional, simulator mode): /workspace/bounty/paypal/demo/wasl_demo.mp4 (1:58, 1080p)
+- Devpost text: /workspace/bounty/paypal/devpost_final.md
+Remaining (needs nightmare):
+1. PayPal sandbox creds: developer.paypal.com → Apps & Credentials → Sandbox → Create App → Client ID + Secret; plus a sandbox
+   Personal account email/password (Testing Tools → Sandbox Accounts). Put in .env (PAYPAL_CLIENT_ID/SECRET).
+2. Re-record in sandbox: start demo server on 8795 with creds, `SANDBOX_BUYER_EMAIL=.. SANDBOX_BUYER_PASSWORD=.. node demo/record.mjs http://localhost:8795 demo/build/frames`,
+   then `PART=dashboard node demo/record.mjs ... demo/build/framesB`, then `sdenv python demo/edit.py`. (Sandbox login selectors untested.)
+3. Create public GitHub repo (baroodstore1-ai/wasl), push, confirm License shows in About.
+4. Upload video to YouTube PUBLIC (rule requires public, not unlisted) on Satr Tools channel.
+5. Devpost: join PayPal AI Hackathon, paste devpost_final.md, links, submit before Nov 12 12:00 PM PST (1:00 PM MST).
+Optional: Render deploy (render.yaml) for hosted URL + Render prize; a hosted LLM key (AI_BASE_URL/AI_API_KEY) for faster/better AI.

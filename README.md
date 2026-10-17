@@ -68,6 +68,9 @@ Or with Docker: `docker build -t wasl . && docker run -p 8787:8787 --env-file .e
 
 **No credentials?** Wasl starts with a built-in **PayPal simulator** (`PAYPAL_ENV=mock`) that copies the request and response shapes of every sandbox endpoint it uses, so judges can click through the whole flow offline. The header pill shows which mode is running.
 
+### Demo tooling
+`npm run seed` adds fictional demo deals. `samples/make_samples.py` regenerates the two sample clips. `demo/record.mjs` records the end-to-end flow (Chrome screencast; set `SANDBOX_BUYER_EMAIL`/`SANDBOX_BUYER_PASSWORD` to log in on the real PayPal sandbox page), and `demo/edit.py` cuts the final video with narration (`demo/narration.json`, Kokoro TTS).
+
 ## Architecture
 
 ```
