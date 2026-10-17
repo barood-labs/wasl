@@ -39,3 +39,10 @@ Deadline: Nov 12 2026 12:00 PM PST = 1:00 PM MST (Denver). Judging Dec 1–15, w
 - Grounding now fixes the deadline year (model said 2023). Take 1 recording uses the old code → shows 2023-10-30 in the grid.
 - 23:45 take 2 recording started (judge guardrail + deadline fix + ask fix)
 - 00:05 take 3 started: deliverable grounding (duration/window/code/subtitles/show-clearly), temperature 0 + seed 7. take 2 failed: model said 60–90s.
+- 00:08 take 3: contract extracted correctly (6 deliverables, 75/15/10, 30–90s, 2026-10-30); v1 verifying
+- 00:15 take 3: v1 failed correctly, v2 passed → paid out; ask step running
+- 00:20 take 3 main part saved (frames + timeline.json up to ask_start). keyboard.type is swallowed in headless → use fill(). Recording dashboard part separately: PART=dashboard → demo/build/framesB + build/timeline.json?? (see below)
+- 00:25 take-3 timeline reconstructed from frame mtimes → demo/build/timeline_frames.json. Dashboard part re-recording → timeline_framesB.json
+- 00:31 dashboard part recorded OK (timeline_framesB.json). Next: edit.
+- 00:35 demo/wasl_demo.mp4 built (1:58)
+- 00:42 final demo rebuilt (title Arabic fix, sped-up label). Video kept out of git (upload to YouTube).

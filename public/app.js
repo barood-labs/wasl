@@ -118,8 +118,7 @@ async function dashboard() {
     const data = Object.entries(by).map(([s, v]) => ({ status: statusLabel(s), amount: v }));
     $('#chart').innerHTML = '';
     if (data.length) agCharts.AgCharts.create({ container: $('#chart'), data, background: { visible: false }, padding: { top: 6, bottom: 0 },
-      series: [{ type: 'bar', direction: 'horizontal', xKey: 'status', yKey: 'amount', fill: '#2446b3', cornerRadius: 6, label: { formatter: ({ value }) => fmtMoney(value), color: '#fff' } }],
-      axes: [{ type: 'category', position: 'left' }, { type: 'number', position: 'bottom', label: { formatter: ({ value }) => `$${value}` } }] });
+      series: [{ type: 'bar', direction: 'horizontal', xKey: 'status', yKey: 'amount', fill: '#2446b3', cornerRadius: 6, label: { formatter: ({ value }) => fmtMoney(value), color: '#fff' } }] });
     $('#feed').innerHTML = events.slice(0, 25).map((e) => `<div><time>${new Date(e.at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</time><span>${esc(e.message)}</span></div>`).join('') || '<div class="ai-note">No activity yet</div>';
   }
   await refresh();

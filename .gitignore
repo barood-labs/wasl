@@ -3,3 +3,4 @@ data/
 .env
 *.log
 demo/build/
+demo/wasl_demo.mp4

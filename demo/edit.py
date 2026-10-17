@@ -15,12 +15,16 @@ def font(p, s, w="Bold"):
     except Exception: pass
     return f
 
-tl = json.load(open(os.path.join(B, "timeline.json")))
-frames = tl["frames"]; M = {m["name"]: m["t"] for m in tl["marks"]}
-ftimes = np.array([f["t"] for f in frames])
+def load(name):
+    tl = json.load(open(os.path.join(B, f"timeline_{name}.json")))
+    return {"dir": name, "frames": tl["frames"], "t": np.array([f["t"] for f in tl["frames"]]), "M": {m["name"]: m["t"] for m in tl["marks"]}}
+TA = load("frames")
+TB = load("framesB") if os.path.exists(os.path.join(B, "timeline_framesB.json")) else TA
+M = TA["M"]
 vo = {s["id"]: s for s in json.load(open(os.path.join(B, "vo", "durations.json")))}
 
 def m(name, d=0): return M[name] + d
+def mb(name, d=0): return TB["M"][name] + d
 # segment: (voice id, [(src_a, src_b, seconds|None)])  None = share the remaining time
 SEGS = [
     ("s1", "TITLE"),
@@ -29,8 +33,8 @@ SEGS = [
     ("s4", [(m("deal_created", -1), m("funded", 2.5), None)]),
     ("s5", [(m("v1_start", -0.5), m("v1_start", 2), None), (m("v1_start", 2), m("v1_done"), 3.0), (m("v1_done"), m("feedback", 1), None)]),
     ("s6", [(m("v2_start", -0.5), m("v2_start", 2), None), (m("v2_start", 2), m("v2_done"), 2.5), (m("v2_done"), m("dashboard2"), None)]),
-    ("s7", [(m("dashboard2"), m("ask_start", 0.5), None), (m("ask_start", 0.5), m("ask_done"), 1.5), (m("ask_done"), m("arabic", -1), None)]),
-    ("s8", [(m("arabic", -1), m("end"), None)]),
+    ("s7", [(mb("dashboard2"), mb("ask_start", 0.5), None), (mb("ask_start", 0.5), mb("ask_done"), 1.5), (mb("ask_done"), mb("arabic", -1), None)], TB),
+    ("s8", [(mb("arabic", -1), mb("end"), None)], TB),
     ("s9", "END"),
 ]
 
@@ -40,16 +44,21 @@ def card(kind):
         a = y / H; d.line([(0, y), (W, y)], fill=(int(13 + 14 * a), int(29 + 30 * a), int(77 + 60 * a)))
     d.rounded_rectangle([W//2 - 70, 250, W//2 + 70, 390], radius=36, fill=(242, 193, 78))
     d.text((W//2, 318), "و", font=font(AR, 96), fill=(20, 43, 111), anchor="mm")
-    d.text((W//2, 480), "Wasl  ·  وصل", font=font(EN, 110, "ExtraBold"), fill="white", anchor="mm")
+    f1, f2 = font(EN, 110, "ExtraBold"), font(AR, 100, "Bold")
+    w1 = d.textlength("Wasl  ·  ", font=f1); w2 = d.textlength("وصل", font=f2, direction="rtl", language="ar")
+    x0 = W//2 - (w1 + w2) / 2
+    d.text((x0, 480), "Wasl  ·  ", font=f1, fill="white", anchor="lm")
+    d.text((x0 + w1, 470), "وصل", font=f2, fill="white", anchor="lm", direction="rtl", language="ar")
     d.text((W//2, 590), "Get paid the moment your video delivers", font=font(EN, 46, "Medium"), fill=(201, 213, 255), anchor="mm")
     sub = "AI-verified sponsorship escrow for bilingual creators  ·  built on PayPal" if kind == "TITLE" else "PayPal Orders · Payments · Payouts · Webhooks   |   Whisper · OCR · LLM   |   AG Grid · MCP"
     d.text((W//2, 680), sub, font=font(EN, 32, "Regular"), fill=(170, 185, 230), anchor="mm")
     if kind == "END": d.text((W//2, 800), "Open source (MIT) · PayPal sandbox · no real money moved", font=font(EN, 28, "Regular"), fill=(150, 165, 210), anchor="mm")
     return img
 
-def src_frame(t):
-    i = int(np.searchsorted(ftimes, t, side="right")) - 1
-    return os.path.join(B, "frames", frames[max(0, i)]["file"])
+def src_frame(t, T=None):
+    T = T or TA
+    i = int(np.searchsorted(T["t"], t, side="right")) - 1
+    return os.path.join(B, T["dir"], T["frames"][max(0, i)]["file"])
 
 capf = font(EN, 34, "SemiBold"); tagf = font(EN, 28, "Bold")
 def caption_chunks(text, dur):
@@ -69,7 +78,7 @@ def overlay(img, cap, speed):
         d.rounded_rectangle([W/2 - tw/2 - 28, H - 120, W/2 + tw/2 + 28, H - 52], radius=18, fill=(10, 18, 45, 215))
         d.text((W/2, H - 86), cap, font=capf, fill="white", anchor="mm")
     if speed > 1.6:
-        label = f"⏩ sped up ×{round(speed)}"
+        label = f">> sped up x{round(speed)}"
         d.rounded_rectangle([W - 330, 110, W - 40, 166], radius=14, fill=(242, 193, 78, 235))
         d.text((W - 185, 138), label, font=tagf, fill=(20, 43, 111), anchor="mm")
     return img
@@ -78,7 +87,8 @@ proc = subprocess.Popen(["ffmpeg", "-y", "-v", "error", "-f", "rawvideo", "-pix_
                          "-c:v", "libx264", "-preset", "medium", "-crf", "19", "-pix_fmt", "yuv420p", os.path.join(B, "video.mp4")], stdin=subprocess.PIPE)
 audio_events, T = [], 0.0
 cache = {}
-for vid, spec in SEGS:
+for seg in SEGS:
+    vid, spec = seg[0], seg[1]; SRC = seg[2] if len(seg) > 2 else TA
     nar = vo[vid]["dur"]; seg_dur = nar + (1.2 if vid not in ("s1", "s9") else 1.6)
     audio_events.append((T + 0.35, os.path.join(B, "vo", f"{vid}.wav")))
     caps = caption_chunks(next(s["text"] for s in json.load(open(os.path.join(HERE, "narration.json"))) if s["id"] == vid), nar)
@@ -98,7 +108,7 @@ for vid, spec in SEGS:
                 if t < acc + dd or (a, b, dd) == plan[-1]:
                     u = min(1.0, (t - acc) / dd); src = a + u * (b - a); speed = (b - a) / dd; break
                 acc += dd
-            f = src_frame(src)
+            f = src_frame(src, SRC)
             if f not in cache:
                 cache.clear(); cache[f] = Image.open(f).convert("RGB").resize((W, H), Image.LANCZOS)
             tc = t - 0.35; cap = next((c for a_, b_, c in caps if a_ <= tc < b_), "")
