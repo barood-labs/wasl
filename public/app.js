@@ -57,20 +57,20 @@ async function dashboard() {
   <p class="sub" style="max-width:820px">${t('Brands fund a PayPal hold. Creators upload the video. Wasl checks every requirement with timestamped evidence, then releases and splits the money automatically.')}</p></div>
   <a class="btn primary" href="#/new">${t('nav.new')}</a></div>
   <div class="grid g4" id="kpis"></div>
-  <div class="grid g32" style="margin-top:18px">
-    <div class="card"><div class="row" style="margin-bottom:12px"><h2 style="margin:0">${t('Deals')}</h2><span class="spacer"></span>
-      <div class="ask"><input id="ask" type="text" placeholder="${esc(t('Ask your deals… e.g. “which deals need revisions over $500?”'))}"><button class="btn blue sm" id="askBtn">✦ ${t('Ask AI')}</button></div>
+  <div class="card" style="margin-top:18px"><div class="row" style="margin-bottom:12px"><h2 style="margin:0">${t('Deals')}</h2><span class="spacer"></span>
+      <div class="ask" style="max-width:640px"><input id="ask" type="text" placeholder="${esc(t('Ask your deals… e.g. “which deals need revisions over $500?”'))}"><button class="btn blue sm" id="askBtn">✦ ${t('Ask AI')}</button></div>
       <button class="btn sm" id="clearBtn">${t('Clear')}</button><button class="btn sm" id="csvBtn">${t('Export CSV')}</button></div>
       <div id="askNote" class="ai-note" style="margin:-4px 0 8px"></div>
-      <div id="dealsGrid" class="agbox"></div></div>
-    <div class="card"><h2>${t('Money by status')}</h2><div id="chart" style="height:200px"></div><h2 style="margin-top:14px">${t('Agent activity')}</h2><div class="feed" id="feed" style="max-height:150px"></div></div>
-  </div>
-  <div class="card" style="margin-top:18px"><h2>${t('Payouts ledger')}</h2><div id="payoutGrid" class="agbox sm"></div></div>`;
+      <div id="dealsGrid" class="agbox" style="height:330px"></div></div>
+  <div class="grid g32" style="margin-top:18px">
+    <div class="card"><h2>${t('Payouts ledger')}</h2><div id="payoutGrid" class="agbox sm" style="height:300px"></div></div>
+    <div class="card"><h2>${t('Money by status')}</h2><div id="chart" style="height:170px"></div><h2 style="margin-top:14px">${t('Agent activity')}</h2><div class="feed" id="feed" style="max-height:110px"></div></div>
+  </div>`;
 
   const cols = [
     { field: 'title', headerName: t('Title'), flex: 2, minWidth: 200, filter: 'agTextColumnFilter', cellRenderer: (p) => `<b>${esc(p.value)}</b>` },
-    { field: 'brand', headerName: t('Brand'), flex: 1, filter: 'agTextColumnFilter' },
-    { field: 'creator', headerName: t('Creator'), flex: 1, filter: 'agTextColumnFilter' },
+    { field: 'brand', headerName: t('Brand'), flex: 1, minWidth: 130, filter: 'agTextColumnFilter' },
+    { field: 'creator', headerName: t('Creator'), flex: 1, minWidth: 110, filter: 'agTextColumnFilter' },
     { field: 'amount', headerName: t('Amount'), width: 120, filter: 'agNumberColumnFilter', type: 'rightAligned', valueFormatter: (p) => fmtMoney(p.value, p.data?.currency) },
     { field: 'status', headerName: t('Status'), width: 150, filter: 'agTextColumnFilter', cellRenderer: statusPill },
     { field: 'score', headerName: t('Score'), width: 130, filter: 'agNumberColumnFilter', cellRenderer: scoreBar },
@@ -86,14 +86,14 @@ async function dashboard() {
   });
   const payoutGrid = grid($('#payoutGrid'), {
     columnDefs: [
-      { field: 'deal', headerName: t('Deal'), flex: 2, filter: true },
-      { field: 'role', headerName: t('Role'), width: 120, filter: true },
-      { field: 'name', headerName: t('Name'), flex: 1 },
-      { field: 'email', headerName: t('Email'), flex: 1.4 },
-      { field: 'percent', headerName: t('Share %'), width: 100, valueFormatter: (p) => `${p.value}%` },
+      { field: 'deal', headerName: t('Deal'), flex: 2, minWidth: 170, filter: true },
+      { field: 'role', headerName: t('Role'), width: 105, filter: true },
+      { field: 'name', headerName: t('Name'), width: 90 },
+      { field: 'email', headerName: t('Email'), flex: 1.4, minWidth: 180 },
+      { field: 'percent', headerName: '%', width: 70, valueFormatter: (p) => `${p.value}%` },
       { field: 'amount', headerName: t('Payout'), width: 120, type: 'rightAligned', valueFormatter: (p) => fmtMoney(p.value, p.data?.currency) },
       { field: 'status', headerName: t('Status'), width: 120, cellRenderer: statusPill },
-      { field: 'transactionId', headerName: 'PayPal txn', flex: 1, cellClass: 'mono' },
+      { field: 'transactionId', headerName: 'PayPal txn', width: 170, cellClass: 'mono' },
     ],
     defaultColDef: { sortable: true, resizable: true },
     overlayNoRowsTemplate: '<div class="empty">Payouts appear here the moment a delivery is verified.</div>',
@@ -223,7 +223,7 @@ async function dealPage(id) {
       <div class="card"><div class="row"><h2 style="margin:0">${t('Delivery')}</h2><span class="spacer"></span><span id="ver" class="ai-note"></span></div>
         <div id="upload" style="margin-top:12px"></div>
         <div class="grid g2" style="margin-top:12px;align-items:start"><div><video id="player" controls preload="metadata"></video></div><div id="progress" class="progress"></div></div></div>
-      <div class="card"><div class="row"><h2 style="margin:0">${t('Evidence')}</h2><span class="spacer"></span><span id="scoreBox" style="width:180px"></span></div><div id="evGrid" class="agbox sm" style="margin-top:10px"></div><div id="feedback" style="margin-top:12px"></div></div>
+      <div class="card"><div class="row"><h2 style="margin:0">${t('Evidence')}</h2><span class="spacer"></span><span id="scoreBox" style="width:180px"></span></div><div id="evGrid" class="agbox" style="margin-top:10px;height:440px"></div><div id="feedback" style="margin-top:12px"></div></div>
       <div class="card"><h2>${t('Transcript')}</h2><div id="trGrid" class="agbox xs"></div></div>
     </div>
   </div>`;
@@ -234,11 +234,11 @@ async function dealPage(id) {
     { field: 'status', headerName: t('Status'), width: 100, cellRenderer: statusPill }] });
   const evG = grid($('#evGrid'), {
     columnDefs: [
-      { field: 'pass', headerName: t('Result'), width: 80, cellRenderer: (p) => (p.value ? '<span class="st PAID_OUT">✓ PASS</span>' : '<span class="st NEEDS_REVISION">✗ FIX</span>') },
-      { field: getLang() === 'ar' ? 'description_ar' : 'description_en', headerName: t('Requirement'), flex: 1.3, wrapText: true, autoHeight: true },
+      { field: 'pass', headerName: t('Result'), width: 96, cellRenderer: (p) => (p.value ? '<span class="st PAID_OUT">✓ PASS</span>' : '<span class="st NEEDS_REVISION">✗ FIX</span>') },
+      { field: getLang() === 'ar' ? 'description_ar' : 'description_en', headerName: t('Requirement'), flex: 1.3, wrapText: true, autoHeight: true, cellStyle: { lineHeight: '1.45', paddingTop: '8px', paddingBottom: '8px' } },
       { field: getLang() === 'ar' ? 'evidence_ar' : 'evidence', valueGetter: (p) => (getLang() === 'ar' && p.data.evidence_ar) || p.data.evidence, headerName: t('Evidence'), flex: 1.8, wrapText: true, autoHeight: true, cellStyle: { lineHeight: '1.45', paddingTop: '8px', paddingBottom: '8px' } },
-      { field: 'at_seconds', headerName: t('At'), width: 75, cellRenderer: (p) => (p.value == null ? '—' : `<span class="ts">▶ ${fmtT(p.value)}</span>`) },
-      { field: 'method', headerName: t('Method'), width: 115, cellRenderer: (p) => `<span class="chip">${p.value === 'ai' ? '✦ AI judge' : '⚙ Verified'}</span>` },
+      { field: 'at_seconds', headerName: t('At'), width: 92, cellRenderer: (p) => (p.value == null ? '—' : `<span class="ts">▶ ${fmtT(p.value)}</span>`) },
+      { field: 'method', headerName: t('Method'), width: 125, cellRenderer: (p) => `<span class="chip">${p.value === 'ai' ? '✦ AI judge' : '⚙ Verified'}</span>` },
     ],
     onCellClicked: (e) => e.colDef.field === 'at_seconds' && seek(e.value),
     overlayNoRowsTemplate: '<div class="empty">Evidence appears here after the creator uploads the video.</div>',

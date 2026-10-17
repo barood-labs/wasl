@@ -1,5 +1,5 @@
 export const dict = {
-  en: {},
+  en: { 'tagline': 'Get paid the moment your video delivers', 'nav.dashboard': 'Dashboard', 'nav.new': '+ New deal' },
   ar: {
     'tagline': 'استلم أجرك لحظة تسليم الفيديو',
     'nav.dashboard': 'لوحة التحكم', 'nav.new': '+ صفقة جديدة',
@@ -24,4 +24,4 @@ export const dict = {
 let lang = localStorage.getItem('wasl.lang') || 'en';
 export const getLang = () => lang;
 export function setLang(l) { lang = l; localStorage.setItem('wasl.lang', l); }
-export const t = (s) => (lang === 'ar' && dict.ar[s]) || s;
+export const t = (s) => (lang === 'ar' && dict.ar[s]) || dict.en[s] || s;

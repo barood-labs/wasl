@@ -140,8 +140,8 @@ export async function verifyDelivery(deal, file, onStep = () => {}) {
     return v;
   };
   const fails = results.filter((r) => !r.pass);
-  const coachEn = clean(judged.coach_en) || (passed ? 'Everything the brand asked for is in the video. Great work!' : 'Almost there. Fix the items below and upload a new version; your payment is safely on hold.');
-  const coachAr = clean(judged.coach_ar, true) || (passed ? 'الفيديو فيه كل ما طلبته العلامة التجارية. عمل رائع!' : 'قربت! صلّح النقاط التالية وارفع نسخة جديدة، ودفعتك محجوزة بأمان.');
+  const coachEn = (passed && clean(judged.coach_en)) || (passed ? 'Everything the brand asked for is in the video. Great work!' : 'Almost there. Fix the items below and upload a new version; your payment is safely on hold.');
+  const coachAr = (passed && clean(judged.coach_ar, true)) || (passed ? 'الفيديو فيه كل ما طلبته العلامة التجارية. عمل رائع!' : 'قربت! صلّح النقاط التالية وارفع نسخة جديدة، ودفعتك محجوزة بأمان.');
   judged.feedback_en = passed ? coachEn : `${coachEn}\n${fails.map((f) => `• ${f.description_en}: ${f.evidence}`).join('\n')}`;
   judged.feedback_ar = passed ? coachAr : `${coachAr}\n${fails.map((f) => `• ${f.description_ar || f.description_en}: ${f.evidence_ar || ''}`.replace(/: $/, '')).join('\n')}`;
   for (const r of results) if (r.method === 'ai') r.evidence = clean(r.evidence) || r.evidence.replace(/[\u3040-\u30ff\u3400-\u9fff]/g, '');

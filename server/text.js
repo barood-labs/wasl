@@ -73,5 +73,17 @@ export function phoneticFind(hay, needle) {
     const sim = 1 - levenshtein(win, N) / Math.max(win.length, N.length);
     if (sim > best) best = sim;
   }
+  // Whisper often re-segments words ("نورك والدبرو"), so also compare space-free skeletons.
+  const Nc = N.replace(/ /g, ''), L = Nc.length;
+  for (let i = 0; i < H.length; i++) {
+    const run = H.slice(i, i + n + 2).join('');
+    if (!run.startsWith(Nc[0])) continue; // anchor on a word start
+    for (const len of [L - 1, L, L + 1]) {
+      const win = run.slice(0, len);
+      if (win.length < L - 1) continue;
+      const sim = 1 - levenshtein(win, Nc) / Math.max(win.length, L);
+      if (sim > best) best = sim;
+    }
+  }
   return best;
 }

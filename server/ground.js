@@ -116,6 +116,13 @@ export function groundDeal(deal, chat) {
     deal.deliverables.push({ kind: 'custom', description_en: 'No exaggerated health claims', description_ar: 'بدون ادعاءات صحية مبالغ فيها', phrase: '', aliases: [], within_first_seconds: null, min_seconds: null, max_seconds: null, languages: [] });
     notes.push('Added brand-safety check: no exaggerated health claims');
   }
+  // Models often guess the wrong year: chats rarely say it, so assume the next upcoming date.
+  const dm = String(deal.deadline || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dm) {
+    const now = new Date(); let y = now.getFullYear();
+    if (new Date(`${y}-${dm[2]}-${dm[3]}`) < new Date(now.toDateString())) y += 1;
+    if (Number(dm[1]) !== y) { notes.push(`Deadline year corrected to ${y}`); deal.deadline = `${y}-${dm[2]}-${dm[3]}`; }
+  }
   deal.grounding = { verifiedFacts: f.emails.length + f.percents.length + (f.amounts.length ? 1 : 0), corrections: notes };
   return deal;
 }

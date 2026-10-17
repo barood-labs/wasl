@@ -1,5 +1,5 @@
 // Records the end-to-end demo with Chrome DevTools screencast (high quality JPEG frames + timestamps).
-// Usage: node demo/record.mjs http://localhost:8790 demo/build/frames
+// Usage: node demo/record.mjs http://localhost:8795 demo/build/frames
 // Requires playwright-core (PLAYWRIGHT_CORE path) and Google Chrome. For the real PayPal sandbox set
 // SANDBOX_BUYER_EMAIL / SANDBOX_BUYER_PASSWORD so the script can log in on the PayPal sandbox page.
 import fs from 'node:fs';
@@ -8,7 +8,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_CORE || '/workspace/bounty/tools/node_modules/playwright-core');
 
-const BASE = process.argv[2] || 'http://localhost:8790';
+const BASE = process.argv[2] || 'http://localhost:8795';
 const OUT = path.resolve(process.argv[3] || 'demo/build/frames');
 fs.mkdirSync(OUT, { recursive: true });
 const W = 1600, H = 900;

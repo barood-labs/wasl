@@ -1,0 +1,11 @@
+[
+ {"id":"s1","text":"Creators across the Arab world close brand deals in WhatsApp chats, in Arabic and English. Then they post the video, and wait sixty to ninety days to get paid. Brands check every video by hand. Wasl fixes both sides."},
+ {"id":"s2","text":"Wasl is A.I.-verified sponsorship escrow, built on PayPal."},
+ {"id":"s3","text":"Layla pastes her chat with Noor Coffee, half Arabic, half English. The A.I. turns it into a contract that can actually be checked: say the brand in the first fifteen seconds, show the code on screen, thirty to ninety seconds, Arabic with English subtitles. Every money fact is cross-checked against the chat, so the split and the emails can't be invented."},
+ {"id":"s4","text":"The brand clicks Fund with PayPal. That creates an Orders v2 order with intent authorize. The money is held, not charged."},
+ {"id":"s5","text":"Layla uploads her first cut. Wasl transcribes the speech with Whisper, reads every frame with O.C.R., and checks the hard rules in code, with timestamps. The brand is named at eighteen seconds, too late. No promo code on screen. And the A.I. judge flags a weight-loss health claim. The money stays on hold, and Layla gets the fix list in Arabic and English. Click any timestamp to see the proof."},
+ {"id":"s6","text":"Version two passes every check. The agent captures the authorization, and sends one PayPal Payouts batch: eight hundred fifty-five dollars to Layla, a hundred seventy-one to her editor, a hundred fourteen to her translator. Nobody chased an invoice."},
+ {"id":"s7","text":"A.G. Grid dashboards track every deal, hold and payout. Ask a question in English or Arabic, and the A.I. turns it into grid filters."},
+ {"id":"s8","text":"The whole app works right to left in Arabic. And an M.C.P. server lets other A.I. agents create, fund and release deals."},
+ {"id":"s9","text":"Wasl. Get paid the moment your video delivers."}
+]

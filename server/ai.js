@@ -65,6 +65,7 @@ export const DealSchema = z.object({
   splits: z.array(z.object({ role: str, name: str, email: str, percent: num })).default([]),
   summary_en: str,
   summary_ar: str,
+  grounding: z.any().optional(),
 });
 
 const EXTRACT_SYSTEM = `You are Wasl's deal-structuring agent. Creators in the Arab world and the diaspora negotiate brand sponsorships in WhatsApp/Instagram chats that mix Arabic dialects and English. Turn the conversation into a precise, machine-checkable contract.

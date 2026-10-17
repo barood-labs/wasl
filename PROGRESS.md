@@ -27,3 +27,13 @@ Deadline: Nov 12 2026 12:00 PM PST = 1:00 PM MST (Denver). Judging Dec 1–15, w
 - Ollama: ~/.local/ollama/bin/ollama serve (127.0.0.1:11434); models built from GGUF in ~/.local/models (pull blocked by proxy).
   qwen2.5:7b gets OOM-killed on shared box; use qwen2.5:3b (num_thread 4). Box is heavily loaded by other agents → slow (minutes per LLM call).
 - Server: `cd /workspace/bounty/paypal && node server/index.js` (port 8787, PayPal simulator mode since no creds).
+
+## 23:25 MDT update
+- Fixed cross-script matching for Whisper re-segmentation ("نورك والدبرو" ≈ Noor Cold Brew); coach text template on failure.
+- Demo server: PORT=8795 DATA_DIR=demo/data (8790 is taken by the box). Seeded 4 fictional deals.
+- Recording running: `node demo/record.mjs http://localhost:8795 demo/build/frames` → demo/build/timeline.json (marks). Log /tmp/rec.log
+
+## 23:30 MDT
+- devpost_final.md written. demo/narration.json + demo/tts.py (kokoro af_heart, Apache-2.0) → demo/build/vo (106 s total).
+- demo/edit.py (run with /workspace/bounty/tools/sdenv/bin/python) cuts frames+timeline → demo/wasl_demo.mp4.
+- Grounding now fixes the deadline year (model said 2023). Take 1 recording uses the old code → shows 2023-10-30 in the grid.
