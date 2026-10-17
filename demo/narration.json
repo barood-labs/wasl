@@ -13,7 +13,7 @@
  },
  {
   "id": "s4",
-  "text": "The brand clicks Fund with PayPal. That creates an Orders v2 order with intent authorize. The money is held, not charged."
+  "text": "The brand clicks Fund with PayPal and approves in the real PayPal sandbox. Wasl creates an Orders v2 order with intent authorize, so the money is held, not charged, until the video passes."
  },
  {
   "id": "s5",

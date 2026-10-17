@@ -26,7 +26,7 @@ function grid(el, opts) {
 const STATUS = {
   AWAITING_FUNDS: ['Awaiting funds', 'بانتظار التمويل'], FUNDED: ['Funds held', 'المبلغ محجوز'], IN_REVIEW: ['AI reviewing', 'قيد التحقق'],
   NEEDS_REVISION: ['Needs revision', 'يحتاج تعديل'], VERIFIED: ['Verified', 'تم التحقق'], RELEASED: ['Released', 'تم التحرير'],
-  PAID_OUT: ['Paid out', 'تم الدفع'], VOIDED: ['Voided', 'ملغى'], SUCCESS: ['Paid', 'مدفوع'], PENDING: ['Pending', 'معلّق'], PROCESSING: ['Processing', 'قيد المعالجة'],
+  PAID_OUT: ['Paid out', 'تم الدفع'], VOIDED: ['Voided', 'ملغى'], SUCCESS: ['Paid', 'مدفوع'], UNCLAIMED: ['Sent · to claim', 'أُرسل · بانتظار الاستلام'], PENDING: ['Pending', 'معلّق'], PROCESSING: ['Processing', 'قيد المعالجة'],
 };
 const statusLabel = (s) => (STATUS[s] ? STATUS[s][getLang() === 'ar' ? 1 : 0] : s);
 const statusPill = (p) => (p.value ? `<span class="st ${esc(p.value)}">${esc(statusLabel(p.value))}</span>` : '');
@@ -47,7 +47,7 @@ window.addEventListener('hashchange', route);
 $('#langBtn').onclick = () => { setLang(getLang() === 'ar' ? 'en' : 'ar'); location.reload(); };
 
 api('/api/health').then((h) => {
-  $('#envPill').innerHTML = `● PayPal ${h.paypalEnv === 'sandbox' ? 'Sandbox' : h.paypalEnv === 'mock' ? 'Simulator' : h.paypalEnv} · AI ${esc(h.ai.model)} ${h.ai.ok ? '' : '(offline)'}`;
+  $('#envPill').innerHTML = `● PayPal ${h.paypalEnv === 'sandbox' ? 'Sandbox' : h.paypalEnv === 'mock' ? 'Offline simulator' : 'Live'} · AI ${esc(h.ai.model)} ${h.ai.ok ? '' : '(offline)'}`;
 }).catch(() => {});
 
 // ------------------------------------------------------------------ Dashboard
@@ -105,12 +105,12 @@ async function dashboard() {
     const sum = (k) => deals.reduce((a, d) => a + (d[k] || 0), 0);
     dealsGrid.setGridOption('pinnedBottomRowData', deals.length ? [{ title: `${deals.length} deals`, amount: sum('amount'), currency: 'USD' }] : []);
     payoutGrid.setGridOption('rowData', payouts);
-    const paid = payouts.filter((p) => p.status === 'SUCCESS').reduce((a, p) => a + p.amount, 0);
+    const paid = payouts.filter((p) => ['SUCCESS', 'UNCLAIMED'].includes(p.status)).reduce((a, p) => a + p.amount, 0);
     const scored = deals.filter((d) => d.score != null);
     $('#kpis').innerHTML = [
       ['gold', t('Held in escrow'), fmtMoney(sum('held')), `${deals.filter((d) => d.held).length} deals on PayPal hold`],
       ['', t('Released'), fmtMoney(sum('released')), `${deals.filter((d) => d.released).length} verified deliveries`],
-      ['', t('Paid to collaborators'), fmtMoney(paid), `${payouts.filter((p) => p.status === 'SUCCESS').length} PayPal payouts`],
+      ['', t('Paid to collaborators'), fmtMoney(paid), `${payouts.filter((p) => ['SUCCESS', 'UNCLAIMED'].includes(p.status)).length} PayPal payouts`],
       ['', t('Avg. verification score'), scored.length ? `${Math.round(scored.reduce((a, d) => a + d.score, 0) / scored.length)}` : '—', `${deals.reduce((a, d) => a + d.versions, 0)} videos checked`],
     ].map(([c, l, v, d]) => `<div class="card kpi ${c}"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></div>`).join('');
     const by = {};

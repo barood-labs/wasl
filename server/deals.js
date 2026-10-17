@@ -100,7 +100,7 @@ export async function release(deal, by = 'brand') {
   if (!['VERIFIED', 'NEEDS_REVISION', 'FUNDED'].includes(deal.status)) throw new Error(`Cannot release while deal is ${deal.status}`);
   if (!deal.paypal?.authorizationId) throw new Error('Deal is not funded');
   const cap = await paypal.captureAuthorization(deal.paypal.authorizationId, deal);
-  deal.paypal.captureId = cap.captureId; deal.paypal.captureStatus = cap.status;
+  deal.paypal.captureId = cap.captureId; deal.paypal.captureStatus = cap.status; if (cap.status === 'COMPLETED') deal.paypal.authorizationStatus = 'CAPTURED';
   deal.status = 'RELEASED'; deal.releasedAt = new Date().toISOString(); deal.releasedBy = by;
   store.saveDeal(deal);
   store.log(deal.id, 'paypal.captured', `${by === 'agent' ? 'Agent' : 'Brand'} released funds: capture ${cap.captureId} (${cap.status})`, cap);
@@ -137,9 +137,9 @@ export async function syncPayouts(deal) {
       store.log(deal.id, 'paypal.payout.item', `Payout to ${p.role} ${p.email}: ${p.status}`);
     }
   }
-  if (deal.payouts.length && deal.payouts.every((p) => p.status === 'SUCCESS') && deal.status !== 'PAID_OUT') {
+  if (deal.payouts.length && deal.payouts.every((p) => ['SUCCESS', 'UNCLAIMED'].includes(p.status)) && deal.status !== 'PAID_OUT') {
     deal.status = 'PAID_OUT'; deal.paidOutAt = new Date().toISOString();
-    store.log(deal.id, 'deal.paid_out', `Everyone is paid: ${deal.payouts.length} recipients`);
+    store.log(deal.id, 'deal.paid_out', `Everyone is paid: ${deal.payouts.length} recipients${deal.payouts.some((p) => p.status === 'UNCLAIMED') ? ' (some still need to claim with a PayPal account)' : ''}`);
   }
   store.saveDeal(deal);
   return deal;

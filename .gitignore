@@ -1,6 +1,9 @@
 node_modules/
 data/
 .env
+.env*
+!.env.example
 *.log
 demo/build/
 demo/wasl_demo.mp4
+demo/data_mock_take3/

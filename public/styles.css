@@ -27,7 +27,7 @@ textarea{min-height:260px;resize:vertical;line-height:1.55}
 .st{display:inline-block;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:700;line-height:18px}
 .st.AWAITING_FUNDS{background:#eef0f6;color:#5d6785}.st.FUNDED{background:var(--infobg);color:var(--info)}.st.IN_REVIEW{background:var(--warnbg);color:var(--warn)}
 .st.NEEDS_REVISION{background:var(--badbg);color:var(--bad)}.st.VERIFIED,.st.RELEASED{background:#e6f0ff;color:#1b4fd6}.st.PAID_OUT{background:var(--okbg);color:var(--ok)}.st.VOIDED{background:#f1f1f1;color:#777}
-.st.SUCCESS{background:var(--okbg);color:var(--ok)}.st.PENDING,.st.PROCESSING{background:var(--warnbg);color:var(--warn)}
+.st.UNCLAIMED{background:#e6f0ff;color:#1b4fd6}.st.SUCCESS{background:var(--okbg);color:var(--ok)}.st.PENDING,.st.PROCESSING{background:var(--warnbg);color:var(--warn)}
 .bar{height:8px;border-radius:9px;background:#edf0f7;overflow:hidden;width:100%}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#e59b2a)}
 .bar.ok i{background:linear-gradient(90deg,#28c48a,#0f9d6b)}
 .agbox{height:360px}.agbox.sm{height:250px}.agbox.xs{height:200px}

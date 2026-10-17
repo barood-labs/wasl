@@ -2,32 +2,44 @@
 //   - Ollama (default, free & local):   AI_BASE_URL=http://localhost:11434/v1  AI_MODEL=qwen2.5:7b
 //   - xAI / OpenAI / Groq / OpenRouter:  set AI_BASE_URL, AI_API_KEY, AI_MODEL
 import { z } from 'zod';
+import http from 'node:http';
+import https from 'node:https';
 import { config } from './config.js';
+
+// node:http instead of fetch: undici's fixed 5-minute headers timeout is too short for a slow local model,
+// so the only limit here is AI_TIMEOUT_MS.
+function postJSON(url, headers, payload, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const u = new URL(url); const lib = u.protocol === 'https:' ? https : http;
+    const req = lib.request(u, { method: 'POST', headers: { ...headers, 'Content-Length': Buffer.byteLength(payload) } }, (res) => {
+      let data = ''; res.setEncoding('utf8'); res.on('data', (c) => { data += c; });
+      res.on('end', () => resolve({ ok: res.statusCode >= 200 && res.statusCode < 300, status: res.statusCode, text: data }));
+    });
+    req.setTimeout(timeoutMs, () => req.destroy(new Error(`AI request timed out after ${timeoutMs} ms`)));
+    req.on('error', reject); req.end(payload);
+  });
+}
 
 export async function chatJSON({ system, user, schema, temperature = 0, maxTokens = 1800 }) {
   let lastErr;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), config.ai.timeoutMs);
     try {
-      const res = await fetch(`${config.ai.baseUrl}/chat/completions`, {
-        method: 'POST', signal: ctrl.signal,
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${config.ai.apiKey}` },
-        body: JSON.stringify({
+      const res = await postJSON(`${config.ai.baseUrl}/chat/completions`,
+        { 'Content-Type': 'application/json', Authorization: `Bearer ${config.ai.apiKey}` },
+        JSON.stringify({
           model: config.ai.model, temperature, max_tokens: maxTokens, seed: 7,
           response_format: { type: 'json_object' },
           messages: [
             { role: 'system', content: system },
             { role: 'user', content: attempt ? `${user}\n\nYour previous answer was not valid for the schema (${lastErr?.message?.slice(0, 300)}). Return ONLY valid JSON matching the schema.` : user },
           ],
-        }),
-      });
-      if (!res.ok) throw new Error(`AI HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);
-      const body = await res.json();
+        }), config.ai.timeoutMs);
+      if (!res.ok) throw new Error(`AI HTTP ${res.status}: ${res.text.slice(0, 300)}`);
+      const body = JSON.parse(res.text);
       const text = body.choices?.[0]?.message?.content || '';
       const json = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
       return schema ? schema.parse(json) : json;
-    } catch (e) { lastErr = e; } finally { clearTimeout(t); }
+    } catch (e) { lastErr = e; }
   }
   throw lastErr;
 }

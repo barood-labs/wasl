@@ -1,8 +1,14 @@
 // Seeds a few extra (fictional) deals so the dashboard has something to show.
-// In simulator mode it also funds/voids some of them through the same PayPal flow the UI uses.
+// In simulator mode it also funds/voids some of them through the same PayPal flow the UI uses. In sandbox mode it
+// does the same against the real PayPal sandbox when buyer test credentials are available (demo/sandbox-approve.mjs).
 const BASE = process.env.WASL_URL || 'http://localhost:8787';
 const j = async (p, o = {}) => { const r = await fetch(BASE + p, { ...o, headers: { 'Content-Type': 'application/json' }, body: o.body && JSON.stringify(o.body) }); if (!r.ok) throw new Error(`${p}: ${await r.text()}`); return r.json(); };
 const health = await j('/api/health');
+let approveSandbox = null;
+if (health.paypalEnv === 'sandbox') {
+  try { const m = await import('../demo/sandbox-approve.mjs'); const { sandboxCreds } = await import('../demo/sandbox-creds.mjs');
+    if (process.env.SANDBOX_BUYER_EMAIL || sandboxCreds().SANDBOX_BUYER_EMAIL) approveSandbox = m.approveSandbox; } catch { /* tooling not installed */ }
+}
 const mk = (title, brand, creator, amount, deadline, extra = []) => ({
   title, brand: { name: brand, email: '' }, creator: { name: creator, email: `${creator.toLowerCase()}@example.com` }, currency: 'USD', amount, deadline,
   deliverables: [
@@ -20,7 +26,11 @@ const deals = [
 ];
 for (const [deal, action] of deals) {
   const d = await j('/api/deals', { method: 'POST', body: { deal } });
-  if (action !== 'await' && health.paypalEnv === 'mock') {
+  if (action !== 'await' && health.paypalEnv === 'sandbox' && approveSandbox) {
+    const o = await j(`/api/deals/${d.id}/fund`, { method: 'POST' });
+    await approveSandbox(o.approveUrl);
+    if (action === 'void') await j(`/api/deals/${d.id}/void`, { method: 'POST' });
+  } else if (action !== 'await' && health.paypalEnv === 'mock') {
     const o = await j(`/api/deals/${d.id}/fund`, { method: 'POST' });
     const r = await fetch(`${BASE}/mock-paypal/approve`, { method: 'POST', redirect: 'manual', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `token=${o.orderId}` });
     await fetch(r.headers.get('location'), { redirect: 'manual' });

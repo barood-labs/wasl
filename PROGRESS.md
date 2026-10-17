@@ -61,3 +61,13 @@ Remaining (needs nightmare):
 4. Upload video to YouTube PUBLIC (rule requires public, not unlisted) on Satr Tools channel.
 5. Devpost: join PayPal AI Hackathon, paste devpost_final.md, links, submit before Nov 12 12:00 PM PST (1:00 PM MST).
 Optional: Render deploy (render.yaml) for hosted URL + Render prize; a hosted LLM key (AI_BASE_URL/AI_API_KEY) for faster/better AI.
+
+## 00:50 Oct 17 — sandbox
+- OAuth against api-m.sandbox.paypal.com: OK (HTTP 200, app APP-8LH13775N8542541S, payouts scope present). Client ID starting 'BAAA' works.
+- .gitignore now ignores .env* (except .env.example); .env/.env.sandbox chmod 600, never committed (checked git log).
+- Real sandbox flow PASSED end to end (Oct 17 00:42 MDT): order 25K98187AL709210E created (AUTHORIZE) → headless login on www.sandbox.paypal.com with buyer test account → "Continue to Review Order" → returned → authorization CREATED (hold until Nov 14) → v2 verified → capture COMPLETED → Payouts batch 855/171/114 → items UNCLAIMED (example.com recipients have no sandbox PayPal account; PayPal holds them for claim) → deal PAID_OUT.
+- Code: UNCLAIMED counts as sent ("Sent · to claim" pill); env pill says "Offline simulator" only in mock mode; authorizationStatus→CAPTURED on capture; demo/sandbox-creds.mjs reads .env.sandbox without shell; recorder blurs email/password and any '@' text on paypal.com.
+- Next: re-record (demo server 8795, sandbox, fresh data) → edit → commit.
+- 01:10 sandbox demo server 8795 (demo/data fresh; old mock data → demo/data_mock_take3, old frames → demo/build/mock_take3). Seeds funded/voided via real sandbox. TTS regenerated (s4 mentions real sandbox, total 111 s). Recording main part → /tmp/rec.log
+- 01:12 take S1 failed: extract LLM call hit undici 5-min headers timeout (box load 150) + Chrome target crash. Fix: ai.js uses node:http with AI_TIMEOUT_MS only; recorder adds --disable-dev-shm-usage. Retrying take S2.
+- 01:50 committed sandbox-mode code. Box OOM-kills llama-server (other agents' jobs use ~13/16 GB, load 50–150): a 40-token test took 6.6 min. Recorder now pauses the screencast during AI waits (timeouts 120 min). Next: retry take S3 when memory allows.
