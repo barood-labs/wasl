@@ -71,3 +71,11 @@ Optional: Render deploy (render.yaml) for hosted URL + Render prize; a hosted LL
 - 01:10 sandbox demo server 8795 (demo/data fresh; old mock data → demo/data_mock_take3, old frames → demo/build/mock_take3). Seeds funded/voided via real sandbox. TTS regenerated (s4 mentions real sandbox, total 111 s). Recording main part → /tmp/rec.log
 - 01:12 take S1 failed: extract LLM call hit undici 5-min headers timeout (box load 150) + Chrome target crash. Fix: ai.js uses node:http with AI_TIMEOUT_MS only; recorder adds --disable-dev-shm-usage. Retrying take S2.
 - 01:50 committed sandbox-mode code. Box OOM-kills llama-server (other agents' jobs use ~13/16 GB, load 50–150): a 40-token test took 6.6 min. Recorder now pauses the screencast during AI waits (timeouts 120 min). Next: retry take S3 when memory allows.
+- 01:43 take S3 recording started (/tmp/rec.log)
+- 02:07 take S3 failed: global OOM killer killed llama-server AND the recorder's Chrome (other agents' jobs: blender, whisper, SD, etc. hold ~13 GB of 16 GB). Not a Wasl bug. Recording blocked until the box has ~4 GB free.
+- RESUME (when `free -m` shows >4000 available and load is lower):
+  1. demo server: `PORT=8795 DATA_DIR=demo/data PUBLIC_URL=http://localhost:8795 node server/index.js` (sandbox seeds already in demo/data)
+  2. `node demo/record.mjs http://localhost:8795 demo/build/frames` (reads buyer creds from .env.sandbox itself; blurs them on camera)
+  3. `PART=dashboard node demo/record.mjs http://localhost:8795 demo/build/framesB`
+  4. `cd demo && /workspace/bounty/tools/sdenv/bin/python edit.py` (VO already regenerated, 111 s) → check < 3 min → commit
+  Fallback: old mock-mode video demo/wasl_demo.mp4 (1:58) + frames in demo/build/mock_take3 still exist.
