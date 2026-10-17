@@ -1,0 +1,26 @@
+# One-click deploy to Render (Blueprint). Uses the Dockerfile so ffmpeg, Tesseract and Whisper are available.
+services:
+  - type: web
+    name: wasl
+    runtime: docker
+    plan: starter
+    healthCheckPath: /api/health
+    envVars:
+      - key: PAYPAL_CLIENT_ID
+        sync: false
+      - key: PAYPAL_CLIENT_SECRET
+        sync: false
+      - key: PUBLIC_URL
+        sync: false
+      - key: AI_BASE_URL
+        sync: false
+      - key: AI_API_KEY
+        sync: false
+      - key: AI_MODEL
+        sync: false
+      - key: WHISPER_MODEL
+        value: base
+    disk:
+      name: wasl-data
+      mountPath: /app/data
+      sizeGB: 1
