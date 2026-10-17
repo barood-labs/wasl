@@ -126,15 +126,19 @@ Tasks:
 3) risk_flags: short English labels for brand-safety issues you notice (e.g. "health claim: weight loss"), or [].
 Return JSON: {"custom":[{"id":"...","pass":true|false,"confidence":0-1,"evidence":"...","at_seconds":number|null}],"coach_en":"...","coach_ar":"...","risk_flags":[]}`;
 
-export async function judgeDelivery({ deal, transcript, ocr, checks }) {
+export async function judgeDelivery({ deal, transcript, ocr, checks, risks = [] }) {
   const lines = transcript.segments.map((s) => `[${s.start.toFixed(1)}s] ${s.text}`).join('\n').slice(0, 9000);
-  const ocrLines = ocr.map((o) => `[${o.t}s] ${o.text}`).join('\n').slice(0, 3000);
+  const ocrLines = ocr.filter((o, i) => i === 0 || o.text !== ocr[i - 1].text).map((o) => `[${o.t}s] ${o.text}`).join('\n').slice(0, 2500);
   const user = `Deal: ${deal.title} — brand ${deal.brand?.name}.
 Deliverables:\n${deal.deliverables.map((d) => `- id=${d.id} kind=${d.kind}: ${d.description_en}`).join('\n')}
 Custom deliverables you must decide: ${deal.deliverables.filter((d) => d.kind === 'custom').map((d) => d.id).join(', ') || 'none'}
 Deterministic results:\n${checks.map((c) => `- id=${c.id}: ${c.pass ? 'PASS' : 'FAIL'} — ${c.evidence}`).join('\n')}
 Transcript (language: ${transcript.language}):\n${lines || '(no speech)'}
-On-screen text (OCR):\n${ocrLines || '(none)'}`;
+On-screen text (OCR):\n${ocrLines || '(none)'}
+Guardrail hits (risky claims found by keyword scan): ${risks.length ? risks.map((r) => `[${r.at}s] ${r.label}: ${r.text}`).join('; ') : 'none'}
+
+Now decide ONLY these custom requirements, judging each one on its own words (do not reuse the deterministic results as evidence):
+${deal.deliverables.filter((d) => d.kind === 'custom').map((d) => `- id=${d.id}: ${d.description_en}`).join('\n') || '(none)'}`;
   return chatJSON({ system: JUDGE_SYSTEM, user, schema: JudgeSchema, maxTokens: 1400 });
 }
 

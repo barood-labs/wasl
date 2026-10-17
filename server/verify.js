@@ -60,6 +60,20 @@ export async function ocrFrames(file, duration) {
 
 const THRESH = 0.8;
 
+// Brand-safety guardrail: deterministic lexicon of risky claims (Arabic + English), reported with timestamps
+// and handed to the AI judge as hints. Catches what a small model may miss.
+const RISKY = [
+  [/تخسر?\s*(ال)?وزن|تنحيف|يحرق\s*(ال)?دهون|weight\s*loss|lose\s*weight|burns?\s*fat/i, 'health claim: weight loss'],
+  [/(ت|ي)قوي\s*(ال)?مناع|immunity|immune/i, 'health claim: immunity'],
+  [/يعالج|بيعالج|علاج|cures?\b|treats?\b/i, 'health claim: cure/treatment'],
+  [/مضمون\s*100|guaranteed|100%\s*(natural|safe)/i, 'absolute claim'],
+];
+export function riskScan(transcript) {
+  const hits = [];
+  for (const seg of transcript.segments) for (const [re, label] of RISKY) if (re.test(seg.text)) hits.push({ label, at: seg.start, text: seg.text });
+  return hits;
+}
+
 export function deterministicChecks(deal, { duration, transcript, ocr }) {
   const checks = [];
   for (const d of deal.deliverables) {
@@ -121,13 +135,21 @@ export async function verifyDelivery(deal, file, onStep = () => {}) {
   onStep('checks', 'Checking hard requirements');
   const checks = deterministicChecks(deal, { duration, transcript, ocr });
   onStep('judge', 'AI auditor reviewing subjective requirements + writing feedback');
+  const risks = riskScan(transcript);
   let judged = { custom: [], feedback_en: '', feedback_ar: '', risk_flags: [] };
   let aiError = null;
-  try { judged = await judgeDelivery({ deal, transcript, ocr, checks }); } catch (e) { aiError = e.message; }
+  try { judged = await judgeDelivery({ deal, transcript, ocr, checks, risks }); } catch (e) { aiError = e.message; }
+  judged.risk_flags = [...new Set([...risks.map((r) => `${r.label} @ ${fmtTime(r.at)}`), ...(judged.risk_flags || []).filter((f) => !risks.some((r) => f.toLowerCase().includes(r.label.split(': ')[1] || '~')))])];
   const results = deal.deliverables.map((d) => {
     const c = checks.find((x) => x.id === d.id);
     if (c) return { ...c, description_en: d.description_en, description_ar: d.description_ar, method: 'deterministic' };
     const j = judged.custom.find((x) => x.id === d.id) || judged.custom[deal.deliverables.filter((x) => x.kind === 'custom').indexOf(d)];
+    const aboutClaims = /claim|ادعاء/i.test(`${d.description_en} ${d.description_ar}`);
+    if (aboutClaims && risks.length) {
+      const r = risks[0];
+      return { id: d.id, kind: d.kind, description_en: d.description_en, description_ar: d.description_ar, method: 'ai', pass: false, confidence: 0.95, at_seconds: r.at,
+        evidence: `Risky ${r.label} at ${fmtTime(r.at)}: “${r.text}”`, evidence_ar: `ادعاء خطر عند ${fmtTime(r.at)}: «${r.text}»` };
+    }
     return { id: d.id, kind: d.kind, description_en: d.description_en, description_ar: d.description_ar, method: 'ai',
       pass: Boolean(j?.pass), confidence: j?.confidence ?? 0, at_seconds: j?.at_seconds ?? null,
       evidence: j?.evidence || (aiError ? `AI auditor unavailable: ${aiError}` : 'No evidence found') };

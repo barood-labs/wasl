@@ -30,7 +30,10 @@ const mark = (name) => { marks.push({ name, t: (Date.now() - t0) / 1000 }); cons
 const wait = (ms) => page.waitForTimeout(ms);
 const save = () => fs.writeFileSync(path.join(OUT, '..', 'timeline.json'), JSON.stringify({ frames, marks }, null, 1));
 // keep a frame flowing even when nothing changes (screencast only emits on paint)
-const keepAlive = setInterval(() => page.evaluate(() => { document.body.dataset.k = Date.now(); }).catch(() => {}), 200);
+const keepAlive = setInterval(() => page.evaluate(() => {
+  let k = document.getElementById('__k'); if (!k) { k = document.createElement('div'); k.id = '__k'; k.style.cssText = 'position:fixed;left:0;bottom:0;width:2px;height:2px;z-index:99999;pointer-events:none'; document.body.appendChild(k); }
+  k.style.background = k.style.background === 'rgb(245, 247, 252)' ? 'rgb(244, 246, 251)' : 'rgb(245, 247, 252)';
+}).catch(() => {}), 150);
 
 async function cursorClick(locator) {
   const el = page.locator(locator).first();
@@ -79,9 +82,10 @@ try {
   await cursorClick('nav a[href="#/"]'); await wait(3500); mark('dashboard2');
   await page.locator('#payoutGrid').scrollIntoViewIfNeeded(); await wait(3500);
   await page.evaluate(() => window.scrollTo(0, 0)); await wait(1000);
-  await cursorClick('#ask'); await page.keyboard.type('deals over $800 that are not paid out yet, biggest first', { delay: 35 });
-  mark('ask_start'); await cursorClick('#askBtn');
-  await page.waitForFunction(() => document.querySelector('#askNote')?.textContent.length > 3, null, { timeout: 15 * 60e3 }); mark('ask_done'); await wait(5000);
+  await cursorClick('#ask'); await page.locator('#ask').pressSequentially('deals over $800 that are not paid out yet, biggest first', { delay: 35 });
+  await wait(600); mark('ask_start'); await cursorClick('#askBtn');
+  await page.waitForFunction(() => document.querySelector('#askNote')?.textContent.length > 3, null, { timeout: 12 * 60e3 }).catch(() => console.log('ask timeout'));
+  mark('ask_done'); await wait(5000);
   await cursorClick('#langBtn'); await page.waitForLoadState(); await wait(4500); mark('arabic');
   const firstPaid = await page.evaluate(async () => (await (await fetch('/api/deals')).json()).find((d) => d.status === 'PAID_OUT')?.id);
   if (firstPaid) { await page.goto(`${BASE}/#/deal/${firstPaid}`); await wait(5000); mark('arabic_deal'); }

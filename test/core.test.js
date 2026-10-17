@@ -48,3 +48,9 @@ test('deterministic checks catch a late brand mention and a missing code', () =>
   const ok = deterministicChecks(deal, { duration: 35, transcript: { language: 'ar', segments: [{ start: 0, end: 4, text: 'اليوم جربت نور كولد برو' }] }, ocr: [{ t: 23, text: 'PROMO CODE NOOR20' }] });
   assert.deepEqual(ok.map((x) => x.pass), [true, true, true]);
 });
+
+test('brand-safety guardrail flags Arabic health claims with timestamps', async () => {
+  const { riskScan } = await import('../server/verify.js');
+  const hits = riskScan({ segments: [{ start: 23, text: 'هي القهوة بتخليك تخسر وزن بسرعة وبتقوي المناعة' }, { start: 9, text: 'طعمها ناعم وبدون سكر مضاف' }] });
+  assert.deepEqual(hits.map((h) => [h.label, h.at]), [['health claim: weight loss', 23], ['health claim: immunity', 23]]);
+});
