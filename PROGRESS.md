@@ -79,3 +79,7 @@ Optional: Render deploy (render.yaml) for hosted URL + Render prize; a hosted LL
   3. `PART=dashboard node demo/record.mjs http://localhost:8795 demo/build/framesB`
   4. `cd demo && /workspace/bounty/tools/sdenv/bin/python edit.py` (VO already regenerated, 111 s) → check < 3 min → commit
   Fallback: old mock-mode video demo/wasl_demo.mp4 (1:58) + frames in demo/build/mock_take3 still exist.
+- 03:08 Oct 17 take S4 started by routine (5.2 GB avail)
+- 03:40 take S4 extract timed out (box load 150, 1.4 GB free); take S5 started
+- Oct 18 04:10 MDT: sandbox take completed via demo/pipeline.sh → demo/wasl_demo.mp4 (2:02, real PayPal sandbox, creds blurred). 
+- Oct 19 03:15 MDT: committed; publishing repo github.com/barood-labs/wasl (account renamed from baroodstore1-ai).

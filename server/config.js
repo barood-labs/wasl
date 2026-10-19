@@ -21,7 +21,7 @@ export const config = {
   ai: {
     baseUrl: (process.env.AI_BASE_URL || 'http://localhost:11434/v1').replace(/\/$/, ''),
     apiKey: process.env.AI_API_KEY || 'ollama',
-    model: process.env.AI_MODEL || 'qwen2.5:7b',
+    model: process.env.AI_MODEL || 'qwen2.5:3b',
     timeoutMs: Number(process.env.AI_TIMEOUT_MS || 240000),
   },
   whisperModel: process.env.WHISPER_MODEL || 'small',
